@@ -27,16 +27,15 @@ page_index.json:
     "draft": "false",
     "title": "Backup File Proliferation",
     "pageName": "backup-file-proliferation"
-  },
-  ...
   }
-  ```
+}
+```
   
-  word_index.json:
+word_index.json:
   
-  ```json
-  {
-    "cdi": [
+```json
+{
+  "cdi": [
     27
   ],
   "require": [
@@ -51,7 +50,6 @@ page_index.json:
     50,
     51,
     55
-  ],
-  ...
+  ]
 }
 ```
