@@ -1,6 +1,8 @@
 # HugoIndexData
 
-Used to build 2 JSON files which will support keyword searches in my Hugo blog. One index maps words to document identifiers; the other provides metadata for each of those identifiers (page name, title, etc). The indexer does not index every word. So, for example, stop words are removed, as well as words which are only numbers. Words with diacritics are folded to their ascii (non-diacritic) equivalent. The assumptionis that the search term is similarly folded prior to being used.
+Used to build 2 JSON files which will support keyword searches in my Hugo blog. 
+
+One index maps words to document identifiers; the other provides metadata for each of those identifiers (page name, title, etc). The indexer does not index every word. So, for example, stop words are removed, as well as words which are only numbers. Words with diacritics are folded to their ascii (non-diacritic) equivalent. The assumptionis that the search term is similarly folded prior to being used.
 
 The content of each page is tokenized using a Lucene analyzer.
 
@@ -42,9 +44,6 @@ word_index.json:
     35,
     56
   ],
-  "org.apache.lucene.search.highlight.textfragment": [
-    35
-  ],
   "click": [
     1,
     50,
@@ -53,4 +52,6 @@ word_index.json:
   ]
 }
 ```
-These files are saved as static content in the Hugo web site, and then used by the search page.
+These files are saved as static content in the Hugo web site, and then used by JavaScript in the search page to build search results.
+
+The search files are rebuilt whenever content is changed.
