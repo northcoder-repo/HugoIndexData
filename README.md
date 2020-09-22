@@ -53,3 +53,4 @@ word_index.json:
   ]
 }
 ```
+These files are saved as static content in the Hugo web site, and then used by the search page.
