@@ -47,6 +47,7 @@ public class Indexer {
     //   ...
     // }
     private final Map<Integer, Map<String, String>> pageIndex = new HashMap<>();
+
     // Each word index entry maps a word to a list of page IDs where the word is found:
     // {
     //   "cdi": [
@@ -55,6 +56,7 @@ public class Indexer {
     //   ...
     // }
     private final Map<String, Set<Integer>> wordIndex = new HashMap<>();
+
     // the reverse index maps a blog page name to its integer ID, for lookups
     // when building the page index. This is just a temporary structure - not saved:
     private final Map<String, Integer> reverseIndex = new HashMap<>();
@@ -146,6 +148,9 @@ public class Indexer {
         return str.matches("-?\\d+(\\.\\d+)?");
     }
 
+    //
+    // entry point into index building:
+    //
     private void buildWordIndex(String content, String pageName) throws IOException {
         Map<String, String> metadata = getMetadata(content, pageName);
         buildPageIndices(metadata);
