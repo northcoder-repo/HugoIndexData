@@ -54,12 +54,12 @@ public class Indexer {
         PageFiles pageFiles = new PageFiles();
         Files.walkFileTree(Path.of(ROOT_DIR + "content/post/"), pageFiles);
         Gson gson = new Gson();
-        try (FileWriter writer = new FileWriter(ROOT_DIR + "content/static/word_index.json")) {
+        try ( FileWriter writer = new FileWriter(ROOT_DIR + "content/static/word_index.json")) {
             gson.toJson(wordIndex, writer);
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE, "Error!", e);
         }
-        try (FileWriter writer = new FileWriter(ROOT_DIR + "content/static/page_index.json")) {
+        try ( FileWriter writer = new FileWriter(ROOT_DIR + "content/static/page_index.json")) {
             gson.toJson(pageIndex, writer);
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE, "Error!", e);
@@ -113,7 +113,7 @@ public class Indexer {
     }
 
     private boolean include(String word) {
-        if (word.length() < 3) {
+        if (word.length() < 3 && !word.toLowerCase().equals("h2")) {
             return false;
         }
         return !isNumeric(word);
