@@ -1,33 +1,32 @@
 package org.ajames.hugoindexdata;
 
+import com.google.gson.Gson;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringReader;
-import java.io.FileWriter;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
-import java.nio.file.FileVisitResult;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.Map;
+import java.time.ZonedDateTime;
 import java.util.HashMap;
-import java.util.Set;
 import java.util.HashSet;
-import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.TokenStream;
-import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
-import org.apache.lucene.analysis.custom.CustomAnalyzer;
-import com.google.gson.Gson;
+import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Pattern;
-import java.time.ZonedDateTime;
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.TokenStream;
+import org.apache.lucene.analysis.custom.CustomAnalyzer;
+import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 
 /*
-  Used to build 2 JSON files which will support keyword searches in 
-  my Hugo blog. One index maps words to document identifiers; the other 
+  Used to build 2 JSON files which will support keyword searches in
+  my Hugo blog. One index maps words to document identifiers; the other
   provides metadata for each of those identifiers (page name, title, etc).
-  The indexer does not index every word. So, for example, stop words are 
+  The indexer does not index every word. So, for example, stop words are
   removed, as well as words which are only numbers. Words with diacritics
   are folded to their ascii (non-diacritic) equivalent. The assumption
   is that the search term is similarly folded prior to being used.
@@ -36,9 +35,6 @@ public class Indexer {
 
     private static final Logger LOGGER = Logger.getLogger(Indexer.class.getName());
     private static String ROOT_DIR;
-
-    // used to separate front matter from body of page:
-    final Pattern dashesPattern = Pattern.compile("^--- *$", Pattern.MULTILINE);
 
     private final Map<String, Set<Integer>> wordIndex = new HashMap<>();
     private final Map<Integer, Map<String, String>> pageIndex = new HashMap<>();
@@ -54,12 +50,12 @@ public class Indexer {
         PageFiles pageFiles = new PageFiles();
         Files.walkFileTree(Path.of(ROOT_DIR + "content/post/"), pageFiles);
         Gson gson = new Gson();
-        try ( FileWriter writer = new FileWriter(ROOT_DIR + "content/static/word_index.json")) {
+        try (FileWriter writer = new FileWriter(ROOT_DIR + "content/static/word_index.json")) {
             gson.toJson(wordIndex, writer);
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE, "Error!", e);
         }
-        try ( FileWriter writer = new FileWriter(ROOT_DIR + "content/static/page_index.json")) {
+        try (FileWriter writer = new FileWriter(ROOT_DIR + "content/static/page_index.json")) {
             gson.toJson(pageIndex, writer);
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE, "Error!", e);
@@ -198,7 +194,7 @@ public class Indexer {
             }
             if (entry.getKey().equals("date")) {
                 try {
-                    ZonedDateTime zdt = ZonedDateTime.parse(entry.getValue());
+                    ZonedDateTime.parse(entry.getValue());
                 } catch (Exception ex) {
                     LOGGER.log(Level.WARNING, "Invalid \"date\" value found in: {0}", metadata.toString());
                 }
