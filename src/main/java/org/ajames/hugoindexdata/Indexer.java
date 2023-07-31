@@ -104,18 +104,14 @@ public class Indexer {
                 .addTokenFilter("stop", stopMap)
                 .build();
 
-        TokenStream ts = analyzer.tokenStream(null, new StringReader(input));
-        CharTermAttribute charTermAtt = ts.addAttribute(CharTermAttribute.class);
-
         StringBuilder sb = new StringBuilder();
-        try {
+        try (TokenStream ts = analyzer.tokenStream(null, new StringReader(input))) {
+            CharTermAttribute charTermAtt = ts.addAttribute(CharTermAttribute.class);
             ts.reset();
             while (ts.incrementToken()) {
                 sb.append(charTermAtt.toString()).append(" ");
             }
             ts.end();
-        } finally {
-            ts.close();
         }
         return sb.toString().trim();
     }
