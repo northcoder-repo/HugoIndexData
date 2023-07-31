@@ -36,8 +36,27 @@ public class Indexer {
     private static final Logger LOGGER = Logger.getLogger(Indexer.class.getName());
     private static String ROOT_DIR;
 
-    private final Map<String, Set<Integer>> wordIndex = new HashMap<>();
+    // Each blog page is assigned a unique integer (starting at 0) as its ID:
+    // {
+    //   "0": {
+    //     "date": "2013-11-15T19:39:03-04:00",
+    //     "draft": "false",
+    //     "title": "AdFind - the Command Line Active Directory Query Tool",
+    //     "pageName": "adfind--the-command-line-active-directory-query-tool"
+    //   },
+    //   ...
+    // }
     private final Map<Integer, Map<String, String>> pageIndex = new HashMap<>();
+    // Each word index entry maps a word to a list of page IDs where the word is found:
+    // {
+    //   "cdi": [
+    //     27, 45
+    //   ],
+    //   ...
+    // }
+    private final Map<String, Set<Integer>> wordIndex = new HashMap<>();
+    // the reverse index maps a blog page name to its integer ID, for lookups
+    // when building the page index. This is just a temporary structure - not saved:
     private final Map<String, Integer> reverseIndex = new HashMap<>();
 
     public static void main(String[] args) throws IOException {
@@ -48,8 +67,11 @@ public class Indexer {
 
     private void doWork() throws IOException {
         PageFiles pageFiles = new PageFiles();
+        // walk the file directory where all the blog pages are stored:
         Files.walkFileTree(Path.of(ROOT_DIR + "content/post/"), pageFiles);
         Gson gson = new Gson();
+        // write the page index and word index data to JSON files. These will
+        // be used by the JavaScript code in the search web page:
         try (FileWriter writer = new FileWriter(ROOT_DIR + "content/static/word_index.json")) {
             gson.toJson(wordIndex, writer);
         } catch (IOException e) {
@@ -62,10 +84,8 @@ public class Indexer {
         }
     }
 
-    private String getContent(Path file) throws IOException {
-        return Files.readString(file, StandardCharsets.UTF_8);
-    }
-
+    // Use a Lucene analyzer and token streamer to convert the raw blog page
+    // content into a string of indexable tokens:
     private String transform(String input) throws IOException {
 
         // the stopwords file is in the default package on the classpath:
@@ -73,6 +93,8 @@ public class Indexer {
         stopMap.put("words", "stopwords.txt");
         stopMap.put("format", "wordset");
 
+        // make all tokens lowercase, and remove accents/diacritics:
+        // (Note: the JavaScript for the search web page does the same for search terms).
         Analyzer analyzer = CustomAnalyzer.builder()
                 .withTokenizer("icu")
                 .addTokenFilter("lowercase")
@@ -96,6 +118,7 @@ public class Indexer {
         return sb.toString().trim();
     }
 
+    // build the word index map:
     private void processWord(String word, int pageId) {
         if (include(word)) {
             if (wordIndex.containsKey(word)) {
@@ -108,10 +131,13 @@ public class Indexer {
         }
     }
 
+    // some addtional customized cleansing, not done by Lucene:
     private boolean include(String word) {
+        // discard short words (h2 is an exception!):
         if (word.length() < 3 && !word.toLowerCase().equals("h2")) {
             return false;
         }
+        // discard numbers:
         return !isNumeric(word);
     }
 
@@ -120,12 +146,9 @@ public class Indexer {
         return str.matches("-?\\d+(\\.\\d+)?");
     }
 
-    private void buildWordIndex(Path file, String pageName) throws IOException {
-        String content = getContent(file);
+    private void buildWordIndex(String content, String pageName) throws IOException {
         Map<String, String> metadata = getMetadata(content, pageName);
-
         buildPageIndices(metadata);
-
         String words = transform(content);
         for (String word : words.split(" ")) {
             processWord(word, reverseIndex.get(pageName));
@@ -133,6 +156,7 @@ public class Indexer {
     }
 
     private void buildPageIndices(Map<String, String> metadata) {
+        // use the temporary reverse index map to build the page index metadata:
         String pageName = metadata.get("pageName");
         if (!reverseIndex.containsKey(pageName)) {
             Integer i = reverseIndex.size();
@@ -141,10 +165,18 @@ public class Indexer {
         }
     }
 
+    // An example of a blog page's metadata:
+    // {
+    //   "date": "2013-11-15T19:39:03-04:00",
+    //   "draft": "false",
+    //   "title": "AdFind - the Command Line Active Directory Query Tool",
+    //   "pageName": "adfind--the-command-line-active-directory-query-tool"
+    // }
     private Map<String, String> getMetadata(String content, String pageName) {
         Map<String, String> metadata = new HashMap<>();
         metadata.put("pageName", pageName);
 
+        // frontMatter is where each Markdown page's metadata is found:
         String frontMatter = "";
         try {
             frontMatter = content.split("(?m)^--- *$", 3)[1]; //?m = multiline
@@ -202,6 +234,7 @@ public class Indexer {
         }
     }
 
+    // tells the directory walker how to handle each visited file:
     class PageFiles extends SimpleFileVisitor<Path> {
 
         @Override
@@ -211,7 +244,10 @@ public class Indexer {
                 String fileName = fileName(file);
                 if (extension(fileName).equals("md")) {
                     String pageName = pageName(fileName);
-                    buildWordIndex(file, pageName);
+                    // the raw content of each blog page - will be tokenized later:
+                    String content = Files.readString(file, StandardCharsets.UTF_8);
+                    // entry point into index building:
+                    buildWordIndex(content, pageName);
                 }
             }
             return FileVisitResult.CONTINUE;
@@ -231,6 +267,8 @@ public class Indexer {
         }
 
         private String pageName(String fileName) {
+            // remove ".md" from end of file name, as this gives us
+            // the web page name:
             return fileName.substring(0, fileName.length() - 3);
         }
     }
