@@ -104,7 +104,7 @@ public class Indexer {
                 .addTokenFilter("stop", stopMap)
                 .build();
 
-        TokenStream ts = analyzer.tokenStream("myField", new StringReader(input));
+        TokenStream ts = analyzer.tokenStream(null, new StringReader(input));
         CharTermAttribute charTermAtt = ts.addAttribute(CharTermAttribute.class);
 
         StringBuilder sb = new StringBuilder();
