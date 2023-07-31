@@ -96,7 +96,7 @@ public class Indexer {
         stopMap.put("format", "wordset");
 
         // make all tokens lowercase, and remove accents/diacritics:
-        // (Note: the JavaScript for the search web page does the same for search terms).
+        // (Note: the JavaScript for the search web page does the equivalent for search terms).
         Analyzer analyzer = CustomAnalyzer.builder()
                 .withTokenizer("icu")
                 .addTokenFilter("lowercase")
