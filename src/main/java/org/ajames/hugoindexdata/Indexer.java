@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.custom.CustomAnalyzer;
@@ -129,10 +130,17 @@ public class Indexer {
         }
     }
 
+    // timestamp fragments such as 30t17:
+    final Pattern tsFragment = Pattern.compile("^\\d{2}t\\d{2}$");
+
     // some addtional customized cleansing, not done by Lucene:
     private boolean include(String word) {
         // discard short words (h2 is an exception!):
         if (word.length() < 3 && !word.toLowerCase().equals("h2")) {
+            return false;
+        }
+        // discard timestamp fragments:
+        if (tsFragment.matcher(word).matches()) {
             return false;
         }
         // discard numbers:
